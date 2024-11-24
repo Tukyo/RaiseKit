@@ -235,13 +235,13 @@ header, footer {
     margin: 50px auto;
     width: 90%;
 }
-#admin-tools {
+/* #admin-tools {
     display: none;
     flex-wrap: wrap;
     justify-content: center;
     gap: 10px;
     padding: 10px;
-}
+} */
 .admin-loading-bar {
     display: none;
     background:linear-gradient(#000 0 0) 0/0% no-repeat#ddd;

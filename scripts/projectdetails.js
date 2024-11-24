@@ -64,7 +64,8 @@ var endpoint = "https://base-mainnet.g.alchemy.com/v2/oF3-SAEZZHqyYLKC4xWZsTMr_l
 // The leaderboard creates a web3 instance using built-in alchemy functions to retrieve information about the highest contributors to your presale
 //
 // Within your alchemy project, you will also need to grab you mainnet endpoint for ENS capture and resolve
-var endpointMainnet = "https://eth-mainnet.g.alchemy.com/v2/oF3-SAEZZHqyYLKC4xWZsTMr_l5zwQo9";
+// ONLY USE THIS IF YOU DO NOT WANT TO USE CLOUDFLARE ENDPOINTS
+// var endpointMainnet = "";
 //
 // Presale & Leaderboard Section
 // The presale code has only been tested using ETH as the currency for contributions, you may run into issues if you are using a different currency
@@ -338,9 +339,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     navElement = document.getElementById('nav');
     hamburgerMenuButton = document.getElementById('hamburger-button');
 
-    adminLoadingBar = document.getElementById('admin-loading-bar');
-    adminPanel = document.getElementById('admin');
-    adminTools = document.getElementById('admin-tools');
+    // adminLoadingBar = document.getElementById('admin-loading-bar');
+    // adminPanel = document.getElementById('admin');
+    // adminTools = document.getElementById('admin-tools');
 
     twitterIcon = document.getElementById('twitter-icon').parentElement;
     telegramIcon = document.getElementById('telegram-icon').parentElement;
@@ -520,8 +521,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     handleResize();
     logProjectData();
 
-    checkEndpointConnection(endpoint, chainName);
-    checkEndpointConnection(endpointMainnet, 'Mainnet');
+    // Currently this script is setup to use Cloudflare endpoints, due to sensitivity of this being hosted on front-end
+    // If you want to check your own endpoint connections, and use them instead please uncomment this
+    // You will also need to update the {resolveENSName} and {resolveAddressToENS} functions to use your own provider
+    // checkEndpointConnection(endpoint, chainName);
+    // checkEndpointConnection(endpointMainnet, 'Mainnet');
 });
 function setTheme(theme) {
     var linkElement = document.createElement('link');
@@ -613,10 +617,17 @@ async function checkEndpointConnection(endpoint, type) {
 }
 async function resolveENSName(ensName) {
     try {
-        const web3Mainnet = AlchemyWeb3.createAlchemyWeb3(endpointMainnet);
-        const resolvedAddress = await web3Mainnet.eth.ens.getAddress(ensName);
-        console.log(`Resolved ENS ${ensName} to address: ${resolvedAddress}`);
-        return resolvedAddress;
+        const mainnetProvider = new ethers.providers.CloudflareProvider();
+        const resolvedAddress = await mainnetProvider.resolveName(ensName);
+
+        if (resolvedAddress) {
+            console.log(`Resolved ENS ${ensName} to address: ${resolvedAddress}`);
+            return resolvedAddress;
+        } else {
+            console.log(`No address found for ENS: ${ensName}`);
+            return null;
+        }
+        
     } catch (error) {
         console.error(`Error resolving ENS ${ensName}:`, error);
         return null;
@@ -624,8 +635,8 @@ async function resolveENSName(ensName) {
 }
 async function resolveAddressToENS(address) {
     try {
-        const provider = new ethers.providers.JsonRpcProvider(endpointMainnet);
-        const ensName = await provider.lookupAddress(address);
+        const mainnetProvider = new ethers.providers.CloudflareProvider();
+        const ensName = await mainnetProvider.lookupAddress(address);
 
         if (ensName) {
             console.log(`Resolved address ${address} to ENS: ${ensName}`);

@@ -215,32 +215,30 @@ async function decodeReferralAddress(txHash) {
 }
 
 async function getEthUsdPrice() {
-    // Check if the endpointMainnet is empty
-    if (endpointMainnet === '') {
-        console.log("No mainnet endpoint provided, skipping USD conversion.");
-        return null;  // Return null to indicate no USD conversion
-    }
-
-    // Chainlink Price Feed ABI for `latestAnswer`
-    const priceFeedABI = [
-        {
-            "inputs": [],
-            "name": "latestAnswer",
-            "outputs": [
-                { "internalType": "int256", "name": "", "type": "int256" }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        }
-    ];
-
-    const web3Mainnet = AlchemyWeb3.createAlchemyWeb3(endpointMainnet);
-
-    const priceFeed = new web3Mainnet.eth.Contract(priceFeedABI, chainlinkUSDPriceFeed);
-
     try {
+        const mainnetProvider = new ethers.providers.CloudflareProvider();
+
+        // Chainlink ETH/USD Price Feed address on Ethereum mainnet
+        const chainlinkUSDPriceFeed = "0x5f4ec3df9cbd43714fe2740f5e3616155c5b8419"; // Replace with the actual address if different
+
+        // Chainlink Price Feed ABI for `latestAnswer`
+        const priceFeedABI = [
+            {
+                "inputs": [],
+                "name": "latestAnswer",
+                "outputs": [
+                    { "internalType": "int256", "name": "", "type": "int256" }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ];
+
+        // Create a contract instance
+        const priceFeed = new ethers.Contract(chainlinkUSDPriceFeed, priceFeedABI, mainnetProvider);
+
         // Fetch the latest ETH/USD price
-        const latestAnswer = await priceFeed.methods.latestAnswer().call({});
+        const latestAnswer = await priceFeed.latestAnswer();
 
         // The `latestAnswer` provides the ETH/USD price, scaled by 10^8
         const ethUsdPrice = parseFloat(latestAnswer) / 1e8; // Convert to USD (from 8 decimal places)
@@ -251,6 +249,7 @@ async function getEthUsdPrice() {
         return null;
     }
 }
+
 
 document.addEventListener('DOMContentLoaded', function () {
     if (refreshLeaderboard && leaderboardCheckInterval > 0) {
